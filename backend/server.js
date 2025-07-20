@@ -13,7 +13,11 @@ connectDB();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002'
+  ],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -45,7 +49,11 @@ app.get('/api/health', (req, res) => {
 
 // Import routes
 const routeRoutes = require('./routes/routeRoutes');
+const enhancedRoutes = require('./routes/enhancedRoutes');
+const googleMapsRoutes = require('./routes/googleMapsRoutes');
 app.use('/api', routeRoutes);
+app.use('/api/enhanced', enhancedRoutes);
+app.use('/api/google-maps', googleMapsRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {

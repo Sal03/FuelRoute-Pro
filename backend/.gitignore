@@ -2,3 +2,21 @@ node_modules/
 .env
 *.log
 .DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# API keys and secrets
+config/secrets.js
+secrets/
+
+# Node modules (if not already there)
+node_modules/
+
+# Logs
+*.log
+logs/

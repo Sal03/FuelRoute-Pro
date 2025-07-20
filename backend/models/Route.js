@@ -43,11 +43,14 @@ const RouteSchema = new mongoose.Schema({
   // Transport modes (manual or AI-optimized)
   transportMode1: { 
     type: String,
-    enum: ['truck', 'rail', 'ship', 'pipeline']
+    enum: ['truck', 'rail', 'ship', 'pipeline'],
+    required: true
   },
   transportMode2: { 
     type: String,
-    enum: ['truck', 'rail', 'ship', 'pipeline'] 
+    enum: ['truck', 'rail', 'ship', 'pipeline'],
+    required: false,
+    default: undefined
   },
   
   // AI optimization

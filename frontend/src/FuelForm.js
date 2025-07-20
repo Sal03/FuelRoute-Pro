@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FuelForm.css';
+import PriceDisplay from './components/PriceDisplay';
+import RoutingMap from './components/RoutingMap';
 
 const FuelForm = ({ backendAPI, apiStatus }) => {
   const [formData, setFormData] = useState({
@@ -21,35 +23,210 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
   const [showHubSuggestions, setShowHubSuggestions] = useState(false);
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [realTimePrices, setRealTimePrices] = useState(null);
   const [results, setResults] = useState({});
   const [isCalculating, setIsCalculating] = useState(false);
+  const [routeMapData, setRouteMapData] = useState(null);
+  const [showMap, setShowMap] = useState(false);
 
-  // Enhanced city database with coordinates and hub types
+  // US Port/Hub database with coordinates and infrastructure capabilities
   const cityDatabase = [
-    { name: 'Seattle, WA', coords: [47.6062, -122.3321], hubType: 'port', region: 'US West Coast' },
-    { name: 'Seattle-Tacoma International Airport, WA', coords: [47.4502, -122.3088], hubType: 'airport', region: 'US West Coast' },
-    { name: 'Bellevue, WA', coords: [47.6101, -122.2015], hubType: 'city', region: 'US West Coast' },
-    { name: 'Portland, OR', coords: [45.5152, -122.6784], hubType: 'port', region: 'US West Coast' },
-    { name: 'Los Angeles, CA', coords: [34.0522, -118.2437], hubType: 'port', region: 'US West Coast' },
-    { name: 'LAX (Los Angeles International Airport), CA', coords: [33.9425, -118.4081], hubType: 'airport', region: 'US West Coast' },
-    { name: 'Port of Long Beach, CA', coords: [33.7701, -118.1937], hubType: 'port', region: 'US West Coast' },
-    { name: 'Port of Los Angeles, CA', coords: [33.7361, -118.2644], hubType: 'port', region: 'US West Coast' },
-    { name: 'San Francisco, CA', coords: [37.7749, -122.4194], hubType: 'port', region: 'US West Coast' },
-    { name: 'Oakland, CA', coords: [37.8044, -122.2712], hubType: 'port', region: 'US West Coast' },
-    { name: 'Houston, TX', coords: [29.7604, -95.3698], hubType: 'port', region: 'US Gulf Coast' },
-    { name: 'New York, NY', coords: [40.7128, -74.0060], hubType: 'port', region: 'US East Coast' },
-    { name: 'Newark, NJ', coords: [40.7357, -74.1724], hubType: 'port', region: 'US East Coast' },
-    { name: 'Chicago, IL', coords: [41.8781, -87.6298], hubType: 'rail', region: 'US Midwest' },
-    { name: 'Denver, CO', coords: [39.7392, -104.9903], hubType: 'rail', region: 'US Mountain' },
-    { name: 'Miami, FL', coords: [25.7617, -80.1918], hubType: 'port', region: 'US Southeast' },
-    { name: 'Taipei, Taiwan', coords: [25.0330, 121.5654], hubType: 'airport', region: 'Asia Pacific' },
-    { name: 'Taoyuan International Airport, Taiwan', coords: [25.0797, 121.2342], hubType: 'airport', region: 'Asia Pacific' },
-    { name: 'Kaohsiung Port, Taiwan', coords: [22.6273, 120.3014], hubType: 'port', region: 'Asia Pacific' },
-    { name: 'Taichung, Taiwan', coords: [24.1477, 120.6736], hubType: 'city', region: 'Asia Pacific' },
-    { name: 'Vancouver Port, BC', coords: [49.2827, -123.1207], hubType: 'port', region: 'Canada West Coast' },
-    { name: 'Tokyo Port, Japan', coords: [35.6762, 139.6503], hubType: 'port', region: 'Asia Pacific' },
-    { name: 'Shanghai Port, China', coords: [31.2304, 121.4737], hubType: 'port', region: 'Asia Pacific' },
-    { name: 'Singapore Port', coords: [1.3521, 103.8198], hubType: 'port', region: 'Asia Pacific' }
+    // Gulf Coast Ports
+    { 
+      name: 'Houston, TX', 
+      coords: [29.7604, -95.3698], 
+      hubType: 'port', 
+      region: 'US Gulf Coast',
+      infrastructure: ['truck', 'rail', 'ship', 'pipeline'],
+      portCode: 'USTXH',
+      facilities: ['petrochemical', 'container', 'bulk', 'energy']
+    },
+    { 
+      name: 'New Orleans, LA', 
+      coords: [29.9511, -90.0715], 
+      hubType: 'port', 
+      region: 'US Gulf Coast',
+      infrastructure: ['truck', 'rail', 'ship', 'pipeline'],
+      portCode: 'USLNO',
+      facilities: ['bulk', 'container', 'energy', 'grain']
+    },
+    { 
+      name: 'Mobile, AL', 
+      coords: [30.6954, -88.0399], 
+      hubType: 'port', 
+      region: 'US Gulf Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USMOB',
+      facilities: ['container', 'bulk', 'automotive']
+    },
+    { 
+      name: 'Tampa Bay, FL', 
+      coords: [27.9506, -82.4572], 
+      hubType: 'port', 
+      region: 'US Gulf Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USTPA',
+      facilities: ['bulk', 'container', 'energy', 'phosphate']
+    },
+    
+    // East Coast Ports
+    { 
+      name: 'Savannah, GA', 
+      coords: [32.0835, -81.0998], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USSAV',
+      facilities: ['container', 'bulk', 'automotive']
+    },
+    { 
+      name: 'Jacksonville, FL', 
+      coords: [30.3322, -81.6557], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USJAX',
+      facilities: ['container', 'automotive', 'bulk']
+    },
+    { 
+      name: 'New York/NJ', 
+      coords: [40.6892, -74.0445], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USNYC',
+      facilities: ['container', 'bulk', 'energy', 'automotive']
+    },
+    { 
+      name: 'Philadelphia, PA', 
+      coords: [39.9526, -75.1652], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USPHL',
+      facilities: ['bulk', 'container', 'energy', 'steel']
+    },
+    { 
+      name: 'Norfolk, VA', 
+      coords: [36.8508, -76.2859], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USNFK',
+      facilities: ['container', 'bulk', 'coal', 'military']
+    },
+    { 
+      name: 'Miami, FL', 
+      coords: [25.7617, -80.1918], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USMIA',
+      facilities: ['container', 'cruise', 'cargo']
+    },
+    { 
+      name: 'Boston, MA', 
+      coords: [42.3601, -71.0589], 
+      hubType: 'port', 
+      region: 'US East Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USBOS',
+      facilities: ['container', 'bulk', 'energy', 'fish']
+    },
+    
+    // West Coast Ports
+    { 
+      name: 'Long Beach, CA', 
+      coords: [33.7701, -118.1937], 
+      hubType: 'port', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USLGB',
+      facilities: ['container', 'bulk', 'automotive', 'energy']
+    },
+    { 
+      name: 'Los Angeles, CA', 
+      coords: [34.0522, -118.2437], 
+      hubType: 'port', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USLAX',
+      facilities: ['container', 'bulk', 'automotive', 'energy']
+    },
+    { 
+      name: 'Seattle, WA', 
+      coords: [47.6062, -122.3321], 
+      hubType: 'port', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USSEA',
+      facilities: ['container', 'bulk', 'energy', 'fish']
+    },
+    { 
+      name: 'Bellevue, WA', 
+      coords: [47.6101, -122.2015], 
+      hubType: 'city', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail'],
+      portCode: 'USBEL',
+      facilities: ['distribution', 'logistics', 'tech']
+    },
+    { 
+      name: 'Portland, OR', 
+      coords: [45.5152, -122.6784], 
+      hubType: 'port', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USPOR',
+      facilities: ['bulk', 'container', 'automotive', 'grain']
+    },
+    { 
+      name: 'San Francisco/Oakland, CA', 
+      coords: [37.8044, -122.2712], 
+      hubType: 'port', 
+      region: 'US West Coast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USFRO',
+      facilities: ['container', 'bulk', 'automotive']
+    },
+    
+    // Inland Hubs
+    { 
+      name: 'Chicago, IL', 
+      coords: [41.8781, -87.6298], 
+      hubType: 'rail', 
+      region: 'US Midwest',
+      infrastructure: ['truck', 'rail', 'pipeline'],
+      portCode: 'USCHI',
+      facilities: ['rail_yard', 'distribution', 'commodity_exchange']
+    },
+    { 
+      name: 'St. Louis, MO', 
+      coords: [38.6270, -90.1994], 
+      hubType: 'inland', 
+      region: 'US Midwest',
+      infrastructure: ['truck', 'rail', 'ship', 'pipeline'],
+      portCode: 'USSTL',
+      facilities: ['river_port', 'rail_yard', 'distribution']
+    },
+    { 
+      name: 'Memphis, TN', 
+      coords: [35.1495, -90.0490], 
+      hubType: 'inland', 
+      region: 'US Southeast',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USMEM',
+      facilities: ['distribution', 'rail_yard', 'river_port']
+    },
+    { 
+      name: 'Duluth-Superior, MN/WI', 
+      coords: [46.7867, -92.1005], 
+      hubType: 'inland', 
+      region: 'US Great Lakes',
+      infrastructure: ['truck', 'rail', 'ship'],
+      portCode: 'USDLH',
+      facilities: ['bulk', 'grain', 'iron_ore', 'coal']
+    }
   ];
 
   // Real-time market simulation data
@@ -136,7 +313,7 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
     return Math.round(R * c);
   };
 
-  // FIXED: Enhanced cost calculation with commodity pricing
+  // Enhanced cost calculation with real-time pricing
   const calculateEnhancedCost = (data) => {
     const fuel = fuelOptions[data.fuelType];
     const market = marketConditions;
@@ -145,8 +322,17 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
     let volumeInTonnes = parseFloat(data.volume) * volumeUnit.factor;
     const volumeInKg = volumeInTonnes * 1000;
     
-    // 1. COMMODITY COST (This was missing!)
-    const commodityPrice = market.fuelPrices[data.fuelType]?.current || 4.25;
+    // 1. COMMODITY COST with real-time pricing if available
+    let commodityPrice;
+    if (realTimePrices && realTimePrices.price) {
+      // Use real-time price from API
+      commodityPrice = realTimePrices.price;
+      console.log(`Using real-time price: $${commodityPrice}/kg`);
+    } else {
+      // Fall back to static price
+      commodityPrice = market.fuelPrices[data.fuelType]?.current || 4.25;
+      console.log(`Using static price: $${commodityPrice}/kg`);
+    }
     const commodityCost = volumeInKg * commodityPrice;
     
     // 2. TRANSPORT COST
@@ -204,13 +390,16 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
       carbonOffset: Math.round(carbonOffset * 100) / 100,
       
       // Metadata
-      confidence: 85,
+      confidence: realTimePrices ? realTimePrices.confidence : 85,
       hub: data.intermediateHub,
       commodityPrice,
       marketInsights: {
         fuelTrend: market.fuelPrices[data.fuelType]?.trend,
-        recommendation: "Route optimized based on current market conditions. Commodity cost included in all-in pricing."
-      }
+        recommendation: realTimePrices 
+          ? `Route optimized using real-time pricing data with ${realTimePrices.confidence}% confidence.` 
+          : "Route optimized based on current market conditions. Commodity cost included in all-in pricing."
+      },
+      priceSource: realTimePrices ? 'real-time-api' : 'static-data'
     };
   };
 
@@ -264,14 +453,26 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Debug: Print payload before submit
+    console.log('[DEBUG] Submitting payload to backend:', formData);
     // Validation
     if (!formData.transportMode1) {
       alert('Please select Transport Mode 1');
       return;
     }
     
+    // If intermediateHub is provided, require transportMode2. Otherwise, only require transportMode2 for long/international routes.
     if (formData.intermediateHub && !formData.transportMode2) {
       alert('Please select Transport Mode 2 for the intermediate hub route');
+      return;
+    }
+
+    // Make intermediateHub optional for domestic/short routes.
+    // Estimate as 'short' if both origin and destination are in the US and no intermediateHub is provided.
+    const isDomestic = (formData.origin && formData.destination &&
+      /,\s*([A-Z]{2})$/.test(formData.origin) && /,\s*([A-Z]{2})$/.test(formData.destination));
+    if (!formData.intermediateHub && !isDomestic) {
+      alert('Please enter an intermediate hub for international or multi-leg routes.');
       return;
     }
     
@@ -283,7 +484,44 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
         // Use backend API
         const response = await backendAPI.calculateCost(formData);
         if (response.success && response.data) {
-          setResults(response.data);
+          // Map backend response to frontend format
+          const backendData = response.data;
+          const mappedResults = {
+            allInCost: backendData.allInCost || backendData.totalCost,
+            commodityCost: backendData.commodityCost,
+            totalTransportCost: backendData.totalTransportCost || backendData.transportationCost,
+            
+            // Map leg data
+            leg1: {
+              cost: backendData.legs?.leg1?.cost || backendData.transportationCost,
+              distance: backendData.legs?.leg1?.distance || backendData.distance,
+              mode: backendData.legs?.leg1?.mode || formData.transportMode1
+            },
+            leg2: backendData.legs?.leg2 ? {
+              cost: backendData.legs.leg2.cost,
+              distance: backendData.legs.leg2.distance,
+              mode: backendData.legs.leg2.mode
+            } : null,
+            
+            // Map other costs
+            fuelHandlingFee: backendData.fuelHandlingFee || backendData.costBreakdown?.fuelHandlingFee,
+            terminalFees: backendData.terminalFees || backendData.costBreakdown?.terminalFees,
+            insuranceCost: backendData.insuranceCost || backendData.costBreakdown?.insurance,
+            carbonOffset: backendData.carbonOffset || backendData.costBreakdown?.carbonOffset,
+            hubTransferFee: backendData.hubTransferFee || backendData.costBreakdown?.hubTransferFee,
+            
+            // Map route data
+            totalDistance: backendData.totalDistance || backendData.distance,
+            
+            // Map metadata
+            confidence: backendData.confidence || backendData.realTimeData?.confidence,
+            marketInsights: backendData.marketInsights || {
+              recommendation: "Route optimized using real-time backend pricing data."
+            },
+            priceSource: 'real-time-api'
+          };
+          
+          setResults(mappedResults);
         } else {
           throw new Error('Invalid backend response');
         }
@@ -318,6 +556,56 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
     if (value === null || value === undefined || isNaN(value)) return '0.00';
     return parseFloat(value).toFixed(2);
   };
+  
+  // Handle real-time price updates
+  const handlePriceUpdate = (priceData) => {
+    setRealTimePrices(priceData);
+  };
+
+  // Update route map data when form data changes
+  const updateRouteMapData = () => {
+    const getLocationData = (locationName) => {
+      const location = cityDatabase.find(city => city.name === locationName);
+      console.log(`Looking for location: "${locationName}", found:`, location);
+      return location ? { name: locationName, coords: location.coords } : null;
+    };
+
+    console.log('Updating route map data with form data:', {
+      origin: formData.origin,
+      destination: formData.destination,
+      intermediateHub: formData.intermediateHub
+    });
+
+    if (formData.origin && formData.destination) {
+      const originData = getLocationData(formData.origin);
+      const destinationData = getLocationData(formData.destination);
+      const hubData = formData.intermediateHub ? getLocationData(formData.intermediateHub) : null;
+
+      const mapData = {
+        fuelType: formData.fuelType,
+        volume: formData.volume,
+        volumeUnit: formData.volumeUnit,
+        origin: originData,
+        destination: destinationData,
+        intermediateHub: hubData,
+        transportMode1: formData.transportMode1,
+        transportMode2: formData.transportMode2
+      };
+      
+      console.log('Setting route map data:', mapData);
+      setRouteMapData(mapData);
+      setShowMap(true);
+    } else {
+      console.log('Not showing map - missing origin or destination');
+      setShowMap(false);
+    }
+  };
+
+  // Watch for form data changes to update map
+  useEffect(() => {
+    updateRouteMapData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.origin, formData.destination, formData.intermediateHub, formData.fuelType, formData.volume, formData.transportMode1, formData.transportMode2]);
 
   return (
     <div className="calculator-section">
@@ -325,6 +613,13 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
         <div className="calculator-header">
           <h2>AI-Powered Multi-Leg Fuel Transportation Calculator</h2>
           <p>Calculate complex routes with intermediate hubs and multiple transport modes</p>
+          
+          {/* Real-Time Price Display Component */}
+          <PriceDisplay 
+            selectedFuel={formData.fuelType} 
+            onPriceUpdate={handlePriceUpdate}
+          />
+          
           <div className="ai-badge">
             <span className="ai-indicator">🤖</span>
             Multi-Modal AI Analysis
@@ -520,9 +815,16 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
             )}
           </div>
 
+
+
           <button type="submit" className="calculate-btn" disabled={isCalculating}>
             {isCalculating ? (
               <>
+                {results.priceSource && (
+                  <span className="price-source">
+                    {results.priceSource === 'real-time-api' ? '(Real-time pricing)' : '(Static pricing)'}
+                  </span>
+                )}
                 <span className="loading-spinner"></span>
                 Calculating All-In Route Cost...
               </>
@@ -542,6 +844,11 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
                 <span className={`confidence-value ${(results.confidence || 85) > 85 ? 'high' : (results.confidence || 85) > 70 ? 'medium' : 'low'}`}>
                   {results.confidence || 85}%
                 </span>
+                {results.priceSource && (
+                  <span className="price-source">
+                    {results.priceSource === 'real-time-api' ? '(Real-time pricing)' : '(Static pricing)'}
+                  </span>
+                )}
               </div>
             </div>
             
@@ -568,10 +875,26 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
                 <div className="cost-label">Leg 1 Transport ({results.leg1?.mode})</div>
                 <div className="cost-value">${formatNumber(results.leg1?.cost)}</div>
               </div>
+              {results.leg1?.truckInfo && (
+                <div className="truck-info">
+                  <div className="truck-details">
+                    🚛 <strong>{results.leg1.truckInfo.trucksNeeded} trucks needed</strong> 
+                    ({results.leg1.truckInfo.capacityPerTruck}t capacity each, {results.leg1.truckInfo.utilizationRate}% utilization)
+                  </div>
+                </div>
+              )}
               {results.leg2 && (
                 <div className="cost-item">
                   <div className="cost-label">Leg 2 Transport ({results.leg2?.mode})</div>
                   <div className="cost-value">${formatNumber(results.leg2?.cost)}</div>
+                </div>
+              )}
+              {results.leg2?.truckInfo && (
+                <div className="truck-info">
+                  <div className="truck-details">
+                    🚛 <strong>{results.leg2.truckInfo.trucksNeeded} trucks needed</strong> 
+                    ({results.leg2.truckInfo.capacityPerTruck}t capacity each, {results.leg2.truckInfo.utilizationRate}% utilization)
+                  </div>
                 </div>
               )}
               <div className="cost-item">
@@ -614,6 +937,14 @@ const FuelForm = ({ backendAPI, apiStatus }) => {
               </div>
               <div className="total-distance">Total Distance: {results.totalDistance || 0} miles</div>
             </div>
+
+            {/* Interactive Routing Map */}
+            {showMap && routeMapData && (
+              <RoutingMap 
+                routeData={routeMapData}
+                showRoute={true}
+              />
+            )}
 
             <div className="market-insights">
               <h4>🤖 AI Multi-Modal Insights</h4>
