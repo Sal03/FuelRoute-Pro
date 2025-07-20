@@ -22,7 +22,8 @@
     "express": "^4.18.2",
     "express-rate-limit": "^6.10.0",
     "helmet": "^7.0.0",
-    "mongoose": "^7.5.0"
+    "mongoose": "^7.5.0",
+    "searoute": "^0.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
