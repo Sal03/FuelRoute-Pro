@@ -468,47 +468,38 @@ router.get('/optimization-recommendations', (req, res) => {
   });
 });
 
-// Yahoo Finance API integration (optional - requires API key)
-router.get('/yahoo-finance/:symbol', async (req, res) => {
+// Hugging Face real-time fuel pricing endpoint
+router.get('/huggingface-pricing', async (req, res) => {
   try {
-    const { symbol } = req.params;
-    
-    // Yahoo Finance API endpoint (requires RapidAPI key)
-    const options = {
-      method: 'GET',
-      url: `https://yahoo-finance15.p.rapidapi.com/api/yahoo/qu/quote/${symbol}`,
-      headers: {
-        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
-        'X-RapidAPI-Host': 'yahoo-finance15.p.rapidapi.com'
-      }
-    };
-
-    const response = await axios.request(options);
-    const price = response.data.regularMarketPrice || response.data.price;
+    const huggingFacePricingService = require('../services/huggingFacePricingService');
+    const prices = await huggingFacePricingService.getRealTimeFuelPrices();
     
     res.json({
       success: true,
-      symbol,
-      price,
-      timestamp: new Date(),
-      source: 'yahoo-finance'
+      data: prices,
+      timestamp: new Date()
     });
   } catch (error) {
-    console.error('Yahoo Finance API error:', error.message);
+    console.error('Hugging Face pricing error:', error.message);
     
     // Fallback prices
     const fallbackPrices = {
-      'H2-USD': 4.25,
-      'MEOH-USD': 0.45,
-      'NH3-USD': 0.65
+      timestamp: new Date().toISOString(),
+      source: 'fallback_static',
+      confidence: 70,
+      prices: {
+        hydrogen: { liquid: 4.25, gas: 4.95 },
+        methanol: { liquid: 1.75 },
+        ammonia: { liquid: 2.30, gas: 2.55 }
+      },
+      marketTrend: 'stable'
     };
     
     res.json({
       success: true,
-      symbol: req.params.symbol,
-      price: fallbackPrices[req.params.symbol] || 1.0,
+      data: fallbackPrices,
       timestamp: new Date(),
-      source: 'fallback'
+      fallback: true
     });
   }
 });

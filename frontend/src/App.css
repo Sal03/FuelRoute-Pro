@@ -5,6 +5,18 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* Header Top - Fixed positioning with scroll behavior */
 .header-top {
   background: #f8f9fa;
   padding: 0.5rem 0;
@@ -16,40 +28,6 @@
   border-bottom: 1px solid #e5e7eb;
   transition: transform 0.3s ease-in-out;
   transform: translateY(0);
-}
-
-/* Header - Fixed positioning with proper spacing and scroll behavior */
-.header {
-  background: white;
-  padding: 1.2rem 0;
-  position: fixed;
-  width: 100%;
-  top: 40px; /* Account for header-top */
-  z-index: 1001;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-bottom: 1px solid #e5e7eb;
-  transition: top 0.3s ease-in-out;
-}
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
-}
-
-.App {
-  min-height: 100vh;
-}
-
-/* Header Top - Fixed positioning */
-.header-top {
-  background: #f8f9fa;
-  padding: 0.5rem 0;
-  font-size: 0.85rem;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  z-index: 1002;
-  border-bottom: 1px solid #e5e7eb;
 }
 
 .header-top-container {
@@ -74,7 +52,7 @@ body {
   color: #1e3a8a;
 }
 
-/* Header - Fixed positioning with proper spacing */
+/* Header - Fixed positioning with proper spacing and scroll behavior */
 .header {
   background: white;
   padding: 1.2rem 0;
@@ -84,6 +62,7 @@ body {
   z-index: 1001;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   border-bottom: 1px solid #e5e7eb;
+  transition: top 0.3s ease-in-out;
 }
 
 .nav-container {
@@ -164,6 +143,29 @@ body {
   box-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
 }
 
+/* Backend Status Indicator */
+.backend-status {
+  font-size: 0.85rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.backend-status.connected {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.backend-status.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.backend-status.checking {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 /* Hero Section - Fixed margin and positioning */
 .hero {
   background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.9) 100%), 
@@ -214,28 +216,7 @@ body {
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-/* Backend Status Indicator */
-.backend-status {
-  font-size: 0.85rem;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 500;
-}
 
-.backend-status.connected {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.backend-status.error {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.backend-status.checking {
-  background-color: #fef3c7;
-  color: #92400e;
-}
 .hero-content .subtitle {
   font-size: 1.4rem;
   margin-bottom: 2rem;
@@ -379,50 +360,7 @@ body {
   box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
 
-.fuel-formula {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 0.8rem;
-}
-
-.fuel-name {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  font-weight: 500;
-}
-
-/* AI Status Indicator */
-.ai-status {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: rgba(16, 185, 129, 0.9);
-  color: white;
-  padding: 0.8rem 1.2rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-  animation: pulse 2s infinite;
-}
 /* Enhanced Fuel Cards with Colors */
-.fuel-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 2rem;
-  border-radius: 16px;
-  text-align: center;
-  transition: all 0.4s;
-  position: relative;
-  overflow: hidden;
-}
-
 /* Hydrogen - Blue Theme */
 .fuel-card:nth-child(1) {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
@@ -487,6 +425,26 @@ body {
   opacity: 0.9;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
+}
+
+/* AI Status Indicator */
+.ai-status {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+  padding: 0.8rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -570,15 +528,12 @@ body {
   margin-bottom: 0.75rem;
 }
 
+/* Footer links - HOVER EFFECTS REMOVED as requested */
 .footer-section a {
   color: #9ca3af;
   text-decoration: none;
-  transition: color 0.3s;
   font-size: 0.95rem;
-}
-
-.footer-section a:hover {
-  color: #fbbf24;
+  /* Removed transition and hover effects */
 }
 
 .footer-bottom {
@@ -597,13 +552,11 @@ body {
   gap: 2rem;
 }
 
+/* Footer bottom links - HOVER EFFECTS REMOVED as requested */
 .footer-bottom-links a {
   color: #9ca3af;
   text-decoration: none;
-}
-
-.footer-bottom-links a:hover {
-  color: white;
+  /* Removed hover effects */
 }
 
 /* Responsive Design */
